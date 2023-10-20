@@ -41,7 +41,7 @@ func (d DataBaseStruct) Init() error {
 
 // CreateUser create
 func (d DataBaseStruct) CreateUser(user User) error {
-	err := d.db.Model(&User{}).Where("name = ?", user.Username).Error
+	err := d.db.Model(&User{}).Where("username = ?", user.Username).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		err = d.db.Create(&user).Error
 		if err != nil {
@@ -74,6 +74,19 @@ func (d DataBaseStruct) ReadUsers(limit int, offset int) ([]User, error) {
 	}
 
 	return users, nil
+}
+
+// FindUser find
+func (d DataBaseStruct) FindUser(name string) (User, error) {
+	var user User
+	err := d.db.Model(&User{}).Where("username = ? ", name).Find(&user).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return User{}, err
+	}
+
+	return user, nil
+
 }
 
 // UpdateUser update
