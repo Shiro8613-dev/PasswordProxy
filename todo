@@ -1,0 +1,20 @@
+UserStruct
+    id int
+    username string
+    password_1 string
+    password_2 string
+    password_3 string
+    pin_code string
+    admin bool
+
+session
+    store: redis
+
+framework
+    webserver: gin
+    sql: gorm
+    redis: gin-redis
+    reverse_proxy: made
+    logger: made
+    crypt: bcrypt
+    config: toml
