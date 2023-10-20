@@ -1,0 +1,19 @@
+[listener]
+host = ""
+port = 8080
+
+[proxy]
+rewrite = false
+pass = "http://localhost:8081"
+
+[database]
+host = ""
+port = 3306
+db_name = ""
+username = ""
+password = ""
+
+[redis]
+host = ""
+port = 6379
+password = ""
