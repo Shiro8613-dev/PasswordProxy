@@ -30,5 +30,6 @@ func Proxy(pass string, rewrite bool) gin.HandlerFunc {
 		}
 
 		proxy.ServeHTTP(c.Writer, c.Request)
+		c.Abort()
 	}
 }
