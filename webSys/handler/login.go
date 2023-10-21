@@ -60,7 +60,6 @@ func LoginApi(database databaseSys.DataBaseStruct) gin.HandlerFunc {
 				MaxAge:   int(time.Hour.Seconds()) * 24,
 			})
 			err = session.Save()
-			c.JSON(http.StatusOK, gin.H{"message": "login"})
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "session error"})
 			}
