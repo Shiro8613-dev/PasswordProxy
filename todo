@@ -18,3 +18,15 @@ framework
     logger: made
     crypt: bcrypt
     config: toml
+
+files
+    build
+        - passwordProxy
+        - resources
+            - _next
+                - static
+                - etc...
+            - login.html
+            - logout.html
+            - manage.html
+
