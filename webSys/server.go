@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 type WebServer struct {
@@ -20,13 +21,23 @@ type WebServer struct {
 func NewWebServer(conf configSys.ListenerConfig, proxy configSys.ProxyConfig, database databaseSys.DataBaseStruct, store sessions.Store) WebServer {
 	r := gin.Default()
 
-	r.Use(gin.Recovery(), middleware.Logger())
+	salt, err := database.ReadCrypto()
+	if err != nil {
+		panic(err)
+	}
+
+	r.Use(gin.Recovery(), middleware.Logger(salt.Salt))
 	r.Use(sessions.Sessions("session", store))
 
 	//after change
 	r.Static("/_next", "D:\\DEV\\PasswordProxy\\frontend\\out\\_next")
 	r.LoadHTMLGlob("D:\\DEV\\PasswordProxy\\frontend\\out\\*.html")
 	//------------
+
+	r.GET("/", func(c *gin.Context) {
+		c.Redirect(http.StatusFound, settings.ProxiedPath)
+	})
+
 	authGroup := r.Group(settings.AuthPath)
 	{
 		authGroup.GET(settings.LoginPagePath, handler.LoginPage)
@@ -34,8 +45,8 @@ func NewWebServer(conf configSys.ListenerConfig, proxy configSys.ProxyConfig, da
 		logoutGroup := authGroup.Group(settings.LogoutPagePath)
 		logoutGroup.Use(middleware.Auth(false, database))
 		{
-			logoutGroup.GET("", handler.LogoutPage)
-			logoutGroup.POST("", handler.LogoutApi)
+			logoutGroup.GET("/", handler.LogoutPage)
+			logoutGroup.POST("/", handler.LogoutApi)
 		}
 	}
 
