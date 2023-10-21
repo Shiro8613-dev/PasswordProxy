@@ -1,0 +1,69 @@
+.login {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+}
+
+.login_form {
+    width: 60%;
+    padding: 4% 2%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    background-color: #000;
+    text-align: center;
+}
+
+.login_form p, .login_form h1 {
+    color: white;
+    font-weight: 500;
+}
+
+.login_form p {
+    font-size: 10px;
+    color: red;
+}
+
+.login_form input[type = "id"],.login_form input[type = "password"] {
+    background: none;
+    display: block;
+    margin: 20px auto;
+    border: 2px solid #ff69b4;
+    padding: 15px 10px;
+    width: 50%;
+    outline: none;
+    border-radius: 24px;
+    transition: 0.25s;
+    text-align: center;
+    color: white;
+}
+
+.login_form input[type = "id"]:focus, .login_form input[type = "password"]:focus {
+    width: 60%;
+    background-color: #f0f8ff;
+    color: black;
+}
+
+.login_form button[type = "button"] {
+    background: none;
+    display: block;
+    margin: 20px auto;
+    border: 2px solid #f0f8ff;
+    padding: 15px 10px;
+    width: 50%;
+    outline: none;
+    color: white;
+    border-radius: 25px;
+    transition: 0.25s;
+    text-align: center;
+    cursor: pointer;
+}
+
+.login_form button[type = "button"]:hover {
+    background-color: #ff69b4;
+    border: 2px solid #ff69b4;
+}
