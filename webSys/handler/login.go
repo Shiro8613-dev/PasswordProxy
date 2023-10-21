@@ -20,7 +20,7 @@ type loginJsonStruct struct {
 }
 
 func LoginPage(c *gin.Context) {
-	c.HTML(200, "login.html", nil)
+	c.HTML(http.StatusOK, "login.html", nil)
 }
 
 func LoginApi(database databaseSys.DataBaseStruct) gin.HandlerFunc {
@@ -42,18 +42,25 @@ func LoginApi(database databaseSys.DataBaseStruct) gin.HandlerFunc {
 
 			//loginOk
 			session := sessions.Default(c)
-			token, err := middleware.JwtGenerate(loginJson.Username, database)
+			salt, err := database.ReadCrypto()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "ServerError"})
+			}
+
+			token, err := middleware.JwtGenerate(loginJson.Username, salt.Salt)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "jwt error"})
 			}
 
 			session.Set("jwt", token)
 			session.Options(sessions.Options{
+				Path:     "/",
 				HttpOnly: true,
 				Secure:   false,
-				MaxAge:   int(time.Hour.Seconds()),
+				MaxAge:   int(time.Hour.Seconds()) * 24,
 			})
 			err = session.Save()
+			c.JSON(http.StatusOK, gin.H{"message": "login"})
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "session error"})
 			}
