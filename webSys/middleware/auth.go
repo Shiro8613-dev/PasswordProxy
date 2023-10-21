@@ -12,36 +12,55 @@ import (
 
 func Auth(admin bool, database databaseSys.DataBaseStruct) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		session := sessions.Default(c)
-		token := session.Get("jwt")
-		if token == nil {
-			c.Redirect(http.StatusFound, settings.AuthPath+settings.LoginPagePath)
+		auth, err := AuthCheck(admin, c, database)
+		if auth {
+			c.Next()
 		} else {
-			token := token.(string)
-
-			username, err := JwtVerify(token, database)
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "jwt error"})
-			}
-
-			user, err := database.FindUser(username)
-			if errors.Is(err, gorm.ErrRecordNotFound) {
+			if err == "not Login" {
 				c.Redirect(http.StatusFound, settings.AuthPath+settings.LoginPagePath)
-			}
-
-			if err != nil {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "user error"})
-			}
-
-			if admin {
-				if user.Admin {
-					c.Next()
-				} else {
-					c.JSON(http.StatusUnauthorized, gin.H{"error": "permission denied"})
-				}
 			} else {
-				c.Next()
+				c.JSON(http.StatusUnauthorized, gin.H{"error": err})
+				c.Abort()
 			}
+		}
+	}
+}
+
+func AuthCheck(admin bool, c *gin.Context, database databaseSys.DataBaseStruct) (bool, string) {
+	salt, err := database.ReadCrypto()
+	if err != nil {
+		return false, "server error"
+	}
+
+	session := sessions.Default(c)
+	token := session.Get("jwt")
+	if token == nil {
+		return false, "not Login"
+	} else {
+		token := token.(string)
+
+		username, err := JwtVerify(token, salt.Salt)
+		if err != nil {
+			return false, "jwt error"
+		}
+
+		user, err := database.FindUser(username)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, "user not exists"
+		}
+
+		if err != nil {
+			return false, "login error"
+		}
+
+		if admin {
+			if user.Admin {
+				return true, ""
+			} else {
+				return false, "permission denied"
+			}
+		} else {
+			return true, ""
 		}
 	}
 }
