@@ -31,8 +31,12 @@ func NewWebServer(conf configSys.ListenerConfig, proxy configSys.ProxyConfig, da
 	{
 		authGroup.GET(settings.LoginPagePath, handler.LoginPage)
 		authGroup.POST(settings.LoginPagePath, handler.LoginApi(database))
-		authGroup.GET(settings.LogoutPagePath, handler.LogoutPage)
-		authGroup.POST(settings.LogoutPagePath, handler.LogoutApi)
+		logoutGroup := authGroup.Group(settings.LogoutPagePath)
+		logoutGroup.Use(middleware.Auth(false, database))
+		{
+			logoutGroup.GET("", handler.LogoutPage)
+			logoutGroup.POST("", handler.LogoutApi)
+		}
 	}
 
 	proxyGroup := r.Group(settings.ProxiedPath)
