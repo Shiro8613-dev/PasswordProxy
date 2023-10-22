@@ -1,13 +1,21 @@
-package middleware
+package jwtSys
 
 import (
+	"PasswordProxy/databaseSys"
 	"fmt"
 	"github.com/golang-jwt/jwt"
 	"time"
 )
 
+var salt string
+
+// SetSalt set
+func SetSalt(s string) {
+	salt = s
+}
+
 // JwtGenerate generate
-func JwtGenerate(username string, salt string) (string, error) {
+func JwtGenerate(username string, database databaseSys.DataBaseStruct) (string, error) {
 	claims := jwt.MapClaims{
 		"username": username,
 		"exp":      time.Now().Add(time.Hour * 24).Unix(),
@@ -15,7 +23,14 @@ func JwtGenerate(username string, salt string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	accessToken, err := token.SignedString([]byte(salt))
+	crypt, err := database.ReadCrypto()
+	if err != nil {
+		return "", err
+	}
+
+	salt = crypt.Salt
+
+	accessToken, err := token.SignedString([]byte(crypt.Salt))
 	if err != nil {
 		return "", err
 	}
@@ -24,7 +39,7 @@ func JwtGenerate(username string, salt string) (string, error) {
 }
 
 // JwtVerify verify
-func JwtVerify(accessToken string, salt string) (string, error) {
+func JwtVerify(accessToken string) (string, error) {
 
 	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
