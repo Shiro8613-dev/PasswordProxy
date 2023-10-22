@@ -20,13 +20,7 @@ type WebServer struct {
 // NewWebServer webserver
 func NewWebServer(conf configSys.ListenerConfig, proxy configSys.ProxyConfig, database databaseSys.DataBaseStruct, store sessions.Store) WebServer {
 	r := gin.Default()
-
-	salt, err := database.ReadCrypto()
-	if err != nil {
-		panic(err)
-	}
-
-	r.Use(gin.Recovery(), middleware.Logger(salt.Salt))
+	r.Use(gin.Recovery(), middleware.Logger(), middleware.ServerHeader())
 	r.Use(sessions.Sessions("session", store))
 
 	//after change
@@ -40,7 +34,7 @@ func NewWebServer(conf configSys.ListenerConfig, proxy configSys.ProxyConfig, da
 
 	authGroup := r.Group(settings.AuthPath)
 	{
-		authGroup.GET(settings.LoginPagePath, handler.LoginPage)
+		authGroup.GET(settings.LoginPagePath, handler.LoginPage(database))
 		authGroup.POST(settings.LoginPagePath, handler.LoginApi(database))
 		logoutGroup := authGroup.Group(settings.LogoutPagePath)
 		logoutGroup.Use(middleware.Auth(false, database))
