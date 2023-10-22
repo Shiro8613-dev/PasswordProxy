@@ -27,6 +27,8 @@ func Connect(config configSys.DatabaseConfig) (DataBaseStruct, error) {
 		return DataBaseStruct{}, err
 	}
 
+	fmt.Println("database connected")
+
 	return DataBaseStruct{
 		db: db,
 	}, err
@@ -79,9 +81,9 @@ func (d DataBaseStruct) ReadUsers(limit int, offset int) ([]User, error) {
 // FindUser find
 func (d DataBaseStruct) FindUser(name string) (User, error) {
 	var user User
-	err := d.db.Model(&User{}).Where("username = ? ", name).Find(&user).Error
+	err := d.db.Where("username = ?", name).First(&user).Error
 
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
 		return User{}, err
 	}
 
