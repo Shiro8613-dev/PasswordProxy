@@ -1,6 +1,6 @@
 import styles from '@/styles/login.module.css'
 import {ChangeEvent, useState} from "react";
-import axios, {AxiosResponse} from "axios";
+import axios from "axios";
 
 type postData = {
     Username  :string
