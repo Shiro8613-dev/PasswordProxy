@@ -3,7 +3,9 @@ package handler
 import (
 	"PasswordProxy/databaseSys"
 	"PasswordProxy/utils/cryptoSys"
+	"PasswordProxy/utils/jwtSys"
 	"PasswordProxy/webSys/middleware"
+	"PasswordProxy/webSys/settings"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -19,8 +21,21 @@ type loginJsonStruct struct {
 	PinCode   int    `json:"pinCode"`
 }
 
-func LoginPage(c *gin.Context) {
-	c.HTML(http.StatusOK, "login.html", nil)
+func LoginPage(database databaseSys.DataBaseStruct) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		b, err := middleware.AuthCheck(false, c, database)
+
+		if b {
+			c.Redirect(http.StatusFound, settings.ProxiedPath)
+		} else {
+			if err != "not Login" {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
+				c.Abort()
+			} else {
+				c.HTML(http.StatusOK, "login.html", nil)
+			}
+		}
+	}
 }
 
 func LoginApi(database databaseSys.DataBaseStruct) gin.HandlerFunc {
@@ -42,12 +57,8 @@ func LoginApi(database databaseSys.DataBaseStruct) gin.HandlerFunc {
 
 			//loginOk
 			session := sessions.Default(c)
-			salt, err := database.ReadCrypto()
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "ServerError"})
-			}
 
-			token, err := middleware.JwtGenerate(loginJson.Username, salt.Salt)
+			token, err := jwtSys.JwtGenerate(loginJson.Username, database)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "jwt error"})
 			}
