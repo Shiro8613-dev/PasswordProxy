@@ -17,5 +17,6 @@ func LogoutApi(c *gin.Context) {
 	err := session.Save()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "session error"})
+		c.Abort()
 	}
 }

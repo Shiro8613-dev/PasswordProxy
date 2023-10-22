@@ -6,8 +6,10 @@ import (
 	"PasswordProxy/utils/jwtSys"
 	"PasswordProxy/webSys/middleware"
 	"PasswordProxy/webSys/settings"
+	"errors"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"net/http"
 	"strconv"
 	"time"
@@ -33,6 +35,7 @@ func LoginPage(database databaseSys.DataBaseStruct) gin.HandlerFunc {
 				c.Abort()
 			} else {
 				c.HTML(http.StatusOK, "login.html", nil)
+				c.Abort()
 			}
 		}
 	}
@@ -43,11 +46,14 @@ func LoginApi(database databaseSys.DataBaseStruct) gin.HandlerFunc {
 		var loginJson loginJsonStruct
 		if err := c.ShouldBindJSON(&loginJson); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "this json struct is bad"})
+			c.Abort()
 		}
 
 		user, err := database.FindUser(loginJson.Username)
-		if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "User is not Exist"})
+			c.Abort()
+			return
 		}
 
 		if cryptoSys.VerifyPassword(loginJson.Password1, user.Password1) &&
@@ -61,6 +67,8 @@ func LoginApi(database databaseSys.DataBaseStruct) gin.HandlerFunc {
 			token, err := jwtSys.JwtGenerate(loginJson.Username, database)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "jwt error"})
+				c.Abort()
+				return
 			}
 
 			session.Set("jwt", token)
@@ -73,11 +81,17 @@ func LoginApi(database databaseSys.DataBaseStruct) gin.HandlerFunc {
 			err = session.Save()
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "session error"})
+				c.Abort()
+				return
 			}
 
 			c.JSON(http.StatusOK, gin.H{"message": "login"})
+			c.Abort()
+
 		} else {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Password"})
+			c.Abort()
+			return
 		}
 	}
 }
