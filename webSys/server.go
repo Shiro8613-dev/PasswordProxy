@@ -17,10 +17,15 @@ type WebServer struct {
 	e    *gin.Engine
 }
 
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+
+}
+
 // NewWebServer webserver
 func NewWebServer(conf configSys.ListenerConfig, proxy configSys.ProxyConfig, database databaseSys.DataBaseStruct, store sessions.Store) WebServer {
-	r := gin.Default()
-	r.Use(gin.Recovery(), middleware.Logger(), middleware.ServerHeader())
+	r := gin.New()
+	r.Use(gin.Recovery(), middleware.Logger(), middleware.ServerHeader(), middleware.ErrorHandler())
 	r.Use(sessions.Sessions("session", store))
 
 	//after change
@@ -57,5 +62,6 @@ func NewWebServer(conf configSys.ListenerConfig, proxy configSys.ProxyConfig, da
 }
 
 func (w WebServer) Start() error {
+	fmt.Printf("webserver is started on %s:%d\n", w.conf.Host, w.conf.Port)
 	return w.e.Run(fmt.Sprintf("%s:%d", w.conf.Host, w.conf.Port))
 }

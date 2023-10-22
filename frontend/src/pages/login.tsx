@@ -17,6 +17,7 @@ export default function Login() {
     const [password2, setPassword2] = useState<string>()
     const [password3, setPassword3] = useState<string>()
     const [pinCode, setPinCode] = useState<string>()
+    const [wait, setWait] = useState(false)
 
     const changeUserId = (e :ChangeEvent<HTMLInputElement>) => setUserName(e.target.value);
     const changePassword1 = (e :ChangeEvent<HTMLInputElement>) => setPassword1(e.target.value);
@@ -54,13 +55,29 @@ export default function Login() {
                     setErrorMsg(d.statusText)
                 }
             })
-                .catch(e => setErrorMsg(e.response.data["error"]));
+                .catch(e => {
+                    setWait(false)
+                    setErrorMsg(e.response.data["error"])
+                });
+            setWait(true)
         }
     }
 
     return (
         <div className={styles.login}>
             <div className={styles.login_form}>
+                {
+                    wait ?  (
+                        <div className={styles.spinner_base} >
+                            <div className={styles.flex}>
+                                <div className={styles.spinner}></div>
+                            </div>
+                            <div className={styles.flex}>
+                                <span className={styles.spinner_text}>Please Wait...</span>
+                            </div>
+                        </div>
+                    ) : null
+                }
                 <div className="login_form_top">
                     <h1>LOGIN</h1>
                     <p>{errorMsg}</p>
@@ -71,7 +88,7 @@ export default function Login() {
                     <input type="password" name="password" placeholder="Password2" onChange={changePassword2} required={true}/>
                     <input type="password" name="password" placeholder="Password3" onChange={changePassword3} required={true}/>
                     <input type="password" name="password" placeholder="PinCode" onChange={changePinCode} required={true} />
-                    <button type="button" name="botton" onClick={clickLogin}>LOGIN</button>
+                    <button type="button" name="botton" onClick={clickLogin} disabled={wait}>LOGIN</button>
                 </div>
             </div>
         </div>
