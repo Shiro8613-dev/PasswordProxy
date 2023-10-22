@@ -1,13 +1,14 @@
 package middleware
 
 import (
+	"PasswordProxy/utils/jwtSys"
 	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"time"
 )
 
-func Logger(salt string) gin.HandlerFunc {
+func Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
 		req := c.Request
@@ -16,7 +17,7 @@ func Logger(salt string) gin.HandlerFunc {
 		session := sessions.Default(c)
 		key := session.Get("jwt")
 		if key != nil {
-			name, _ = JwtVerify(key.(string), salt)
+			name, _ = jwtSys.JwtVerify(key.(string))
 		}
 
 		//ip [username] - - [date time] Method URL Proto statusCode

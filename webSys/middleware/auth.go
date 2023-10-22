@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"PasswordProxy/databaseSys"
+	"PasswordProxy/utils/jwtSys"
 	"PasswordProxy/webSys/settings"
 	"errors"
 	"github.com/gin-contrib/sessions"
@@ -27,11 +28,6 @@ func Auth(admin bool, database databaseSys.DataBaseStruct) gin.HandlerFunc {
 }
 
 func AuthCheck(admin bool, c *gin.Context, database databaseSys.DataBaseStruct) (bool, string) {
-	salt, err := database.ReadCrypto()
-	if err != nil {
-		return false, "server error"
-	}
-
 	session := sessions.Default(c)
 	token := session.Get("jwt")
 	if token == nil {
@@ -39,7 +35,7 @@ func AuthCheck(admin bool, c *gin.Context, database databaseSys.DataBaseStruct) 
 	} else {
 		token := token.(string)
 
-		username, err := JwtVerify(token, salt.Salt)
+		username, err := jwtSys.JwtVerify(token)
 		if err != nil {
 			return false, "jwt error"
 		}
